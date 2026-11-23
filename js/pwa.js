@@ -3,7 +3,7 @@
    Works on https:// or localhost (not when opening the file directly).
    ===================================================================== */
 const INSTALL = {
-  delaySeconds: 15,   // how long before the pop-up appears
+  delaySeconds: 5,    // how long before the pop-up appears
   snoozeDays: 7,      // how long "Not now" hides it
   title: "Keep Dee's Tastera on your phone",
   text: "Open the menu and order in one tap. No app store, no download wait."
@@ -42,7 +42,7 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || ["localho
       ? `<p class="fine">Tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>.</p>`
       : `<p class="fine">Open your browser menu (⋮ or Share) and tap <b>Install app</b> or <b>Add to Home screen</b>.</p>`;
     el.innerHTML = `<img src="icons/icon-192.png" alt="" width="52" height="52">
-      <div><b>${INSTALL.title}</b><p>${INSTALL.text}</p>${howTo}
+      <div><b class="install-t">${INSTALL.title}</b><p>${INSTALL.text}</p>${howTo}
       <div class="install-btns">${deferred ? `<button class="btn btn-primary btn-sm" id="doInstall">Install</button>` : ""}<button class="btn btn-sm btn-ghost-d" id="notNow">${howTo ? "Got it" : "Not now"}</button></div></div>`;
     document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add("show"));
