@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- EDIT: SEO title + description -->
+<title>Dee's Tastera | Good food. Made with intention.</title>
+<meta name="description" content="Home-style Nigerian meals cooked to order by Dee. Pick your meals, send your order on WhatsApp, and Dee takes it from there.">
+<meta property="og:title" content="Dee's Tastera | Good food. Made with intention.">
+<meta property="og:description" content="Cooked to order by Dee. Order directly on WhatsApp.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#231713">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dee's Tastera">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<a class="skip" href="#menu">Skip to menu</a>
+<div class="progress" id="progress"></div>
+
+<!-- ============ NAVIGATION ============ -->
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="Dee's Tastera, home">Dee's <i>Tastera</i></a>
+  <ul class="links" id="links">
+    <li><a href="#top">Home</a></li>
+    <li><a href="#menu">Our Menu</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#about">About Dee</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-end">
+    <button class="btn btn-primary btn-sm" data-open-order>Order <span class="count" id="navCount" hidden>0</span></button>
+    <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="links"><span></span></button>
+  </div>
+</header>
+
+<main id="top">
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="wrap hero-in">
+    <div class="glass dk hero-card" data-reveal>
+      <p class="eyebrow">Home-cooked, made to order</p>
+      <!-- EDIT: headline -->
+      <h1>Good food. Made with <em>intention.</em></h1>
+      <p class="lede">Every plate is cooked by Dee herself, for people who love food made with care. Pick what you're craving, send your order, and she'll take it from there.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#menu">See the menu</a>
+        <button class="btn btn-glass" data-open-order>Order now</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MENU ============ -->
+<section id="menu" class="light">
+  <i class="blob b1" data-speed=".08"></i><i class="blob b2" data-speed="-.06"></i>
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>Our Menu</p>
+    <h2 data-reveal style="--d:.08s">What's <em>cooking.</em></h2>
+    <!-- EDIT: delete this line once your real menu is in js/config.js -->
+    <p class="sample" data-reveal style="--d:.14s">Sample dishes and prices for now. Swap them in <code>js/config.js</code>.</p>
+    <div class="cats glass" id="cats" role="group" aria-label="Menu categories"></div>
+    <div class="meals" id="meals" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how" class="dark">
+  <i class="blob b3" data-speed=".07"></i><i class="blob b4" data-speed="-.05"></i>
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>How It Works</p>
+    <h2 data-reveal style="--d:.08s">Three steps. <em>That's it.</em></h2>
+    <ol class="steps">
+      <li class="glass dk" data-reveal><span class="n">1</span><div><h3>Find your meal</h3><p>Browse the menu and see what's ready to order.</p></div></li>
+      <li class="glass dk" data-reveal style="--d:.1s"><span class="n">2</span><div><h3>Send your order</h3><p>Choose your meals, add your details, and your order opens as a ready-to-send WhatsApp message.</p></div></li>
+      <li class="glass dk" data-reveal style="--d:.2s"><span class="n">3</span><div><h3>Dee gets cooking</h3><p>She prepares your food and sorts out collection or delivery with you directly on WhatsApp.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section id="about" class="light">
+  <i class="blob b2" data-speed=".06"></i>
+  <div class="wrap about">
+    <!-- EDIT: set portrait in js/config.js -->
+    <div class="portrait glass" id="portrait" data-reveal>Dee's portrait goes here</div>
+    <div class="glass about-card" data-reveal style="--d:.1s">
+      <p class="eyebrow">Meet Dee</p>
+      <h2>The one in <em>the kitchen.</em></h2>
+      <!-- EDIT: replace with Dee's real story when you have it -->
+      <p>Dee's Tastera is just Dee, her kitchen, and your order. The person who takes your order is the person who cooks it.</p>
+      <p>Ordering straight from her means you can ask questions, tell her how you like things, and know exactly who's making your food.</p>
+      <p class="pull">Cooked by Dee, for you.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section id="contact" class="dark contact">
+  <i class="blob b3" data-speed=".08"></i><i class="blob b1" data-speed="-.05"></i>
+  <div class="wrap">
+    <div class="glass dk contact-card" data-reveal>
+      <p class="eyebrow">Contact</p>
+      <h2>Hungry yet? <em>Let's fix that.</em></h2>
+      <p class="lede">Build your order in a minute, or just say hi on WhatsApp.</p>
+      <div class="cta-row"><button class="btn btn-primary" data-open-order>Place an order</button><a class="btn btn-glass" id="waLink" target="_blank" rel="noopener">Chat on WhatsApp</a></div>
+      <div class="info">
+        <div>Instagram<b><a id="igLink" target="_blank" rel="noopener"></a></b></div>
+        <div>Phone<b id="phoneTxt"></b></div>
+        <div>Email<b><a id="mailLink"></a></b></div>
+        <div>Location<b id="locTxt"></b></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><span>© <span id="yr"></span> Dee's Tastera</span><span>Prices and availability confirmed by Dee. <button class="linkbtn" id="installLink" hidden>Install app</button></span><a href="#top">Back to top ↑</a></div></footer>
+
+<!-- ============ ORDER BAR + DRAWER ============ -->
+<div class="orderbar" id="bar"><span id="barTxt"></span><button class="btn btn-primary btn-sm" data-open-order>View order</button></div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle" aria-hidden="true">
+  <div class="grab" aria-hidden="true"></div>
+  <div class="d-head"><h2 id="dTitle">Your order</h2><button class="icon-btn" id="close" aria-label="Close order">×</button></div>
+  <div class="d-body" id="dBody"></div>
+  <div class="d-foot" id="dFoot"></div>
+</aside>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>
