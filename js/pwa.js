@@ -38,19 +38,20 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || ["localho
     shown = true;
     const el = document.createElement("div");
     el.className = "install glass"; el.id = "installCard"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Install app");
-    const howTo = !deferred && isIOS
-      ? `<p class="fine">Tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>.</p>` : "";
+    const howTo = deferred ? "" : isIOS
+      ? `<p class="fine">Tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>.</p>`
+      : `<p class="fine">Open your browser menu (⋮ or Share) and tap <b>Install app</b> or <b>Add to Home screen</b>.</p>`;
     el.innerHTML = `<img src="icons/icon-192.png" alt="" width="52" height="52">
       <div><b>${INSTALL.title}</b><p>${INSTALL.text}</p>${howTo}
-      <div class="install-btns">${deferred || !isIOS ? `<button class="btn btn-primary btn-sm" id="doInstall">Install</button>` : ""}<button class="btn btn-sm btn-ghost-d" id="notNow">${howTo ? "Got it" : "Not now"}</button></div></div>`;
+      <div class="install-btns">${deferred ? `<button class="btn btn-primary btn-sm" id="doInstall">Install</button>` : ""}<button class="btn btn-sm btn-ghost-d" id="notNow">${howTo ? "Got it" : "Not now"}</button></div></div>`;
     document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add("show"));
     el.querySelector("#notNow").onclick = () => hide(true);
     const b = el.querySelector("#doInstall"); if (b) b.onclick = install;
   }
 
-  addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; if (link) link.hidden = false; setTimeout(show, INSTALL.delaySeconds * 1000); });
+  addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; setTimeout(show, INSTALL.delaySeconds * 1000); });
   addEventListener("appinstalled", () => { hide(false); if (link) link.hidden = true; typeof toast === "function" && toast("Installed. Find Dee's Tastera on your home screen"); });
-  if (isIOS) { if (link) link.hidden = false; setTimeout(show, INSTALL.delaySeconds * 1000); }
+  if (isIOS) setTimeout(show, INSTALL.delaySeconds * 1000);
   if (link) link.onclick = install;
 })();
