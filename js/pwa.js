@@ -1,194 +1,105 @@
-/* =====================================================================
-   DEE'S TASTERA — PWA INSTALL EXPERIENCE
-   Shows an install prompt where supported, and clear manual instructions
-   on browsers that do not expose beforeinstallprompt.
-   ===================================================================== */
-
 const INSTALL = {
   delaySeconds: 10,
   snoozeDays: 7,
-  title: "Keep Dee's Tastera on your phone",
-  text: "Open the menu and order in one tap. No app store, no download wait."
+  title: "Keep D’Tastera Kitchen on your phone",
+  text: "Open the menu and order in one tap. No app store, no download wait.",
+  desktopTitle: "Keep D’Tastera Kitchen on your computer",
+  desktopText: "Open the menu and order in one click, straight from your desktop or taskbar."
 };
 
-// Register the service worker. PWAs must be served over HTTPS or localhost.
 if ("serviceWorker" in navigator &&
-    (location.protocol === "https:" ||
-     ["localhost", "127.0.0.1"].includes(location.hostname))) {
+    (location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname))) {
   addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js")
-      .catch(error => console.warn("Dee's Tastera: service worker registration failed.", error));
+      .catch(error => console.warn("Service worker registration failed.", error));
   });
 }
 
 (() => {
-  const standalone =
-    matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const link = document.getElementById("installLink");
+  const slot = document.getElementById("installSlot");
+  const inner = document.getElementById("installInner");
+  const standalone = matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isDesktop = !isIOS && !isAndroid;
 
-  if (standalone) {
-    if (link) link.hidden = true;
-    return;
-  }
+  if (standalone) { if (link) link.hidden = true; return; }
 
-  let deferredPrompt = null;
-  let popupShown = false;
-  let showTimer = null;
+  let deferredPrompt = null, popupShown = false, closeTimer = null;
 
   const wasSnoozed = () => {
     try {
-      const lastDismissed = Number(localStorage.getItem("dt-install-snooze") || 0);
-      return lastDismissed > 0 &&
-        Date.now() - lastDismissed < INSTALL.snoozeDays * 864e5;
-    } catch {
-      return false;
-    }
+      const last = Number(localStorage.getItem("dtk-install-snooze") || 0);
+      return last > 0 && Date.now() - last < INSTALL.snoozeDays * 864e5;
+    } catch { return false; }
   };
 
   function closePopup(snooze = false) {
-    const popup = document.getElementById("installCard");
-    if (popup) {
-      popup.classList.remove("show");
-      setTimeout(() => popup.remove(), 500);
-    }
-
-    if (snooze) {
-      try {
-        localStorage.setItem("dt-install-snooze", String(Date.now()));
-      } catch {}
-    }
+    slot.classList.remove("open");
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => { inner.innerHTML = ""; }, 500);
+    if (snooze) { try { localStorage.setItem("dtk-install-snooze", String(Date.now())); } catch {} }
   }
 
   async function startInstall() {
-    if (!deferredPrompt) {
-      showPopup(true);
-      return;
-    }
-
+    if (!deferredPrompt) { showPopup(true); return; }
     deferredPrompt.prompt();
-
     try {
       const choice = await deferredPrompt.userChoice;
-      if (choice?.outcome === "accepted") {
-        closePopup(false);
-        if (link) link.hidden = true;
-      }
-    } catch (error) {
-      console.warn("Dee's Tastera: install prompt could not be completed.", error);
-    }
-
+      if (choice && choice.outcome === "accepted") { closePopup(false); if (link) link.hidden = true; }
+    } catch (error) { console.warn("Install prompt could not be completed.", error); }
     deferredPrompt = null;
   }
 
-  function popupContent() {
-    let instructions = "";
+  function popupHTML() {
+    const steps = deferredPrompt ? "" : isIOS
+      ? '<p class="fine">In Safari, tap the <b>Share</b> button, then choose <b>Add to Home Screen</b>.</p>'
+      : isAndroid
+      ? '<p class="fine">Tap the <b>⋮</b> menu in your browser, then choose <b>Install app</b> or <b>Add to Home screen</b>.</p>'
+      : '<p class="fine">In Chrome or Edge, click the install icon at the right of the address bar, or open the browser menu and choose <b>Install</b>. Some browsers don’t support installing.</p>';
+    const title = isDesktop ? INSTALL.desktopTitle : INSTALL.title;
+    const text = isDesktop ? INSTALL.desktopText : INSTALL.text;
+    return `<div class="install" id="installCard" role="dialog" aria-label="Install D’Tastera Kitchen">
+      <div class="install-top"><img src="./icons/icon-192.png" alt="" width="44" height="44"><span class="install-kicker">D’TASTERA KITCHEN</span>
+        <button class="install-close" id="notNow" type="button" aria-label="Dismiss install message">×</button></div>
+      <div class="install-copy"><b>${title}</b><p>${text}</p>${steps}</div>
+      <div class="install-btns">${deferredPrompt ? '<button class="btn btn-primary btn-sm" id="doInstall">Install</button>' : ""}
+        <button class="install-later" id="notNowSecondary" type="button">${steps ? "Got it" : "Not now"}</button></div></div>`;
+  }
 
-    if (!deferredPrompt) {
-      instructions = isIOS
-        ? '<p class="fine">In Safari, tap the <b>Share</b> button, then choose <b>Add to Home Screen</b>.</p>'
-        : '<p class="fine">Open your browser menu (⋮ or Share) and look for <b>Install app</b> or <b>Add to Home screen</b>. The option depends on your browser.</p>';
-    }
-
-    const installButton = deferredPrompt
-      ? '<button class="btn btn-primary btn-sm" id="doInstall">Install</button>'
-      : "";
-
-    return `
-      <div class="install-top">
-        <img src="./icons/icon-192.png" alt="" width="48" height="48">
-        <span class="install-kicker">DEE'S TASTERA</span>
-        <button class="install-close" id="notNow" type="button" aria-label="Dismiss install message">×</button>
-      </div>
-      <div class="install-copy">
-        <b>${INSTALL.title}</b>
-        <p>${INSTALL.text}</p>
-        ${instructions}
-      </div>
-      <div class="install-btns">
-        ${installButton}
-        <button class="install-later" id="notNowSecondary" type="button">
-          ${instructions ? "Got it" : "Not now"}
-        </button>
-      </div>`;
+  function bindPopup() {
+    const dismiss = () => closePopup(true);
+    inner.querySelector("#notNow").addEventListener("click", dismiss);
+    inner.querySelector("#notNowSecondary").addEventListener("click", dismiss);
+    const b = inner.querySelector("#doInstall"); if (b) b.addEventListener("click", startInstall);
   }
 
   function showPopup(force = false) {
-    if (document.getElementById("installCard")) return;
+    if (inner.querySelector("#installCard") && slot.classList.contains("open")) return;
     if (!force && (popupShown || wasSnoozed())) return;
-
-    // Avoid covering the order drawer. Retry after it closes.
-    if (typeof drawerOpen !== "undefined" && drawerOpen) {
-      setTimeout(() => showPopup(force), 4000);
-      return;
-    }
-
+    if (typeof drawerOpen !== "undefined" && drawerOpen) { setTimeout(() => showPopup(force), 4000); return; }
     popupShown = true;
-
-    const popup = document.createElement("div");
-    popup.className = "install glass";
-    popup.id = "installCard";
-    popup.setAttribute("role", "dialog");
-    popup.setAttribute("aria-label", "Install Dee's Tastera");
-    popup.innerHTML = popupContent();
-
-    // Keep the invitation in normal document flow, directly after the nav.
-    // Its expanded height pushes the hero down; closing it collapses that space.
-    const nav = document.getElementById("nav");
-    if (nav?.parentNode) {
-      nav.insertAdjacentElement("afterend", popup);
-    } else {
-      document.body.prepend(popup);
-    }
-
-    requestAnimationFrame(() => popup.classList.add("show"));
-
-    const dismiss = () => closePopup(true);
-    popup.querySelector("#notNow").addEventListener("click", dismiss);
-    popup.querySelector("#notNowSecondary")?.addEventListener("click", dismiss);
-
-    const installButton = popup.querySelector("#doInstall");
-    if (installButton) {
-      installButton.addEventListener("click", startInstall);
-    }
+    clearTimeout(closeTimer);
+    inner.innerHTML = popupHTML();
+    bindPopup();
+    requestAnimationFrame(() => requestAnimationFrame(() => slot.classList.add("open")));
   }
 
-  // Some browsers expose a native install prompt. Capture it for our button.
-  window.addEventListener("beforeinstallprompt", event => {
+  addEventListener("beforeinstallprompt", event => {
     event.preventDefault();
     deferredPrompt = event;
-
-    // If the fallback instructions are already visible, replace them with
-    // the native Install button now that the browser prompt is available.
-    const existing = document.getElementById("installCard");
-    if (existing) {
-      existing.innerHTML = popupContent();
-      const dismiss = () => closePopup(true);
-      existing.querySelector("#notNow").addEventListener("click", dismiss);
-      existing.querySelector("#notNowSecondary")?.addEventListener("click", dismiss);
-      existing.querySelector("#doInstall")?.addEventListener("click", startInstall);
-    }
+    if (inner.querySelector("#installCard")) { inner.innerHTML = popupHTML(); bindPopup(); }
   });
 
-  window.addEventListener("appinstalled", () => {
+  addEventListener("appinstalled", () => {
     closePopup(false);
     if (link) link.hidden = true;
-    if (typeof toast === "function") {
-      toast("Installed. Find Dee's Tastera on your home screen");
-    }
+    if (typeof toast === "function") toast("Installed. Find D’Tastera on your home screen");
   });
 
-  // Important: show a useful fallback even when beforeinstallprompt never fires.
-  showTimer = setTimeout(() => showPopup(false), INSTALL.delaySeconds * 1000);
+  const startTimer = () => setTimeout(() => { if (!isDesktop || deferredPrompt) showPopup(false); }, INSTALL.delaySeconds * 1000);
+  document.documentElement.classList.contains("loading") ? addEventListener("dtk:ready", startTimer, { once: true }) : startTimer();
 
-  // Footer link always gives the visitor another way to see install guidance.
-  if (link) {
-    link.addEventListener("click", event => {
-      event.preventDefault();
-      if (deferredPrompt) startInstall();
-      else showPopup(true);
-    });
-  }
+  if (link) link.addEventListener("click", () => { deferredPrompt ? startInstall() : showPopup(true); });
 })();

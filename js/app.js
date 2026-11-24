@@ -1,7 +1,3 @@
-/* =====================================================================
-   DEE'S TASTERA — APP LOGIC (you shouldn't need to edit this file;
-   numbers, text and menu items are all in js/config.js)
-   ===================================================================== */
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const money = n => CONFIG.currency + n.toLocaleString("en-NG");
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
@@ -9,32 +5,36 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let cart = {}, cat = "All", view = "order", drawerOpen = false, lastFocus = null;
 let form = { name:"", phone:"", mode:"Delivery", address:"", notes:"" };
-try { cart = JSON.parse(localStorage.getItem("dt-cart")) || {}; } catch (e) {}
-try { Object.assign(form, JSON.parse(localStorage.getItem("dt-form")) || {}, { notes:"" }); } catch (e) {}  // remember returning customers
+try { cart = JSON.parse(localStorage.getItem("dtk-cart")) || {}; } catch (e) {}
+try { Object.assign(form, JSON.parse(localStorage.getItem("dtk-form")) || {}, { notes:"" }); } catch (e) {}  // remember returning customers
 let orderRef = "";
 const makeRef = () => "DT-" + Date.now().toString(36).slice(-5).toUpperCase();
-const waUrl = () => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(message())}`;
-const save = () => { try { localStorage.setItem("dt-cart", JSON.stringify(cart)); } catch (e) {} };
+const waBase = `https://wa.me/${CONFIG.whatsapp}`;
+const waUrl = () => `${waBase}?text=${encodeURIComponent(message())}`;
+const save = () => { try { localStorage.setItem("dtk-cart", JSON.stringify(cart)); } catch (e) {} };
 const items = () => Object.entries(cart).map(([id, q]) => ({ ...MENU.find(m => m.id === id), q })).filter(i => i.name);
 const count = () => items().reduce((a, i) => a + i.q, 0);
 const subtotal = () => items().reduce((a, i) => a + i.q * i.price, 0);
 
-/* ---------- fill in business details ---------- */
 $("#heroBg").style.backgroundImage = `url("${CONFIG.hero}")`;
-if (CONFIG.portrait) $("#portrait").innerHTML = `<img src="${esc(CONFIG.portrait)}" alt="Dee, the cook behind Dee's Tastera" loading="lazy">`;
-$("#waLink").href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent("Hi Dee! I have a question about your food.")}`;
-$("#igLink").href = CONFIG.instagram; $("#igLink").textContent = CONFIG.instagramLabel;
-$("#phoneTxt").textContent = CONFIG.phone; $("#locTxt").textContent = CONFIG.location;
-$("#mailLink").href = "mailto:" + CONFIG.email; $("#mailLink").textContent = CONFIG.email;
+if (CONFIG.portrait) $("#portrait").innerHTML = `<img src="${esc(CONFIG.portrait)}" alt="Dee, the cook behind D’Tastera Kitchen" loading="lazy">`;
+$("#waLink").href = `${waBase}?text=${encodeURIComponent("Hi Dee! I have a question.")}`;
+$("#phones").innerHTML = CONFIG.phones.map((p, i) => `<li><a class="num" href="tel:${esc(p.tel)}">${esc(p.display)}</a>
+  <span class="phone-btns">${i === 0 ? `<a class="btn btn-glass btn-sm" href="${waBase}" target="_blank" rel="noopener">WhatsApp</a>` : ""}<a class="btn btn-glass btn-sm" href="tel:${esc(p.tel)}">Call</a></span></li>`).join("");
+$("#footPhones").innerHTML = CONFIG.phones.map(p => `<a href="tel:${esc(p.tel)}">${esc(p.display)}</a>`).join("");
+$("#extra").innerHTML = [
+  CONFIG.instagram && ["Instagram", `<a href="${esc(CONFIG.instagram)}" target="_blank" rel="noopener">${esc(CONFIG.instagramLabel || CONFIG.instagram)}</a>`],
+  CONFIG.email && ["Email", `<a href="mailto:${esc(CONFIG.email)}">${esc(CONFIG.email)}</a>`],
+  CONFIG.location && ["Location", esc(CONFIG.location)]
+].filter(Boolean).map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
 $("#yr").textContent = new Date().getFullYear();
 
-/* ---------- menu ---------- */
 const cats = ["All", ...new Set(MENU.map(m => m.cat))];
 const renderCats = () => $("#cats").innerHTML = cats.map(c => `<button aria-pressed="${c === cat}" data-cat="${esc(c)}">${esc(c)}</button>`).join("");
 function ctl(m) {
   const q = cart[m.id] || 0;
   if (!CONFIG.acceptingOrders) return `<button class="add" disabled>Closed for now</button>`;
-  if (m.avail === "soldout") return `<button class="add" disabled>Not today</button>`;
+  if (m.avail === "soldout") return `<button class="add" disabled>Not available</button>`;
   return q
     ? `<div class="stepper"><button data-act="dec" data-id="${m.id}" aria-label="One less ${esc(m.name)}">−</button><b>${q}</b><button data-act="inc" data-id="${m.id}" aria-label="One more ${esc(m.name)}">+</button></div>`
     : `<button class="add" data-act="inc" data-id="${m.id}">Add to order</button>`;
@@ -44,12 +44,11 @@ function renderMeals() {
   <article class="meal glass" data-reveal style="--d:${(i % 2) * .08}s" data-m="${m.id}">
     <div class="ph"><img src="${esc(m.img)}" alt="${esc(m.name)}" loading="lazy" width="700" height="480" onerror="this.style.display='none'"></div>
     <div class="meal-body"><h3>${esc(m.name)}</h3><p>${esc(m.desc)}</p>
-      <div class="meal-foot"><div><span class="price">${money(m.price)}</span><span class="tag ${m.avail}">${TEXT.availability[m.avail]}</span></div><span class="ctl">${ctl(m)}</span></div></div>
+      <div class="meal-foot"><div><span class="price">${money(m.price)}</span>${TEXT.labels[m.avail] ? `<span class="tag ${m.avail}">${TEXT.labels[m.avail]}</span>` : ""}</div><span class="ctl">${ctl(m)}</span></div></div>
   </article>`).join("");
   $$("#meals [data-reveal]").forEach(el => io ? io.observe(el) : el.classList.add("in"));
 }
 
-/* ---------- cart ---------- */
 function change(id, d) {
   const m = MENU.find(x => x.id === id); if (!m || m.avail === "soldout") return;
   const q = (cart[id] || 0) + d;
@@ -66,7 +65,6 @@ function sync() {
   if (drawerOpen) renderDrawer();
 }
 
-/* ---------- the WhatsApp message (edit wording in config.js → TEXT) ---------- */
 function message() {
   const lines = items().map(i => `• ${i.q} × ${i.name} (${money(i.q * i.price)})`);
   return [`*Order ${orderRef}*`, TEXT.orderIntro, ``, ...lines, ``, `*Subtotal:* ${money(subtotal())}`, ``,
@@ -75,7 +73,6 @@ function message() {
     form.notes.trim() ? `*Notes:* ${form.notes.trim()}` : "", ``, TEXT.orderOutro].join("\n").replace(/\n{3,}/g, "\n\n");
 }
 
-/* ---------- drawer ---------- */
 const payBox = () => CONFIG.account && CONFIG.account.number ? `<div class="pay glass"><p class="eyebrow">Payment details</p>
   <div class="pay-row"><div><b>${esc(CONFIG.account.number)}</b><span>${esc(CONFIG.account.bank)} · ${esc(CONFIG.account.name)}</span></div><button class="btn btn-sm btn-ghost-d" id="copyAcct">Copy</button></div>
   <p class="fine">Please wait for Dee to confirm your total before you pay.</p></div>` : "";
@@ -84,7 +81,7 @@ function renderDrawer() {
   $("#dTitle").textContent = view === "review" ? "Almost there" : view === "sent" ? "Order ready" : "Your order";
   if (!CONFIG.acceptingOrders) {
     body.innerHTML = `<div class="empty"><strong>Kitchen's closed</strong>${esc(CONFIG.closedMessage)}</div>`;
-    foot.innerHTML = `<a class="btn btn-primary" style="width:100%" target="_blank" rel="noopener" href="https://wa.me/${CONFIG.whatsapp}">Message Dee</a>`; return;
+    foot.innerHTML = `<a class="btn btn-primary" style="width:100%" target="_blank" rel="noopener" href="${waBase}">Message Dee</a>`; return;
   }
   if (view === "sent" && list.length) {
     body.innerHTML = `<div class="empty"><strong>Nearly done</strong>${esc(TEXT.afterSend)}</div>
@@ -132,7 +129,6 @@ function validate() {
 }
 let tt; function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => el.classList.remove("show"), 1900); }
 
-/* ---------- clicks, typing, keyboard ---------- */
 document.addEventListener("click", e => {
   const t = e.target.closest("button,a"); if (!t) return;
   if (t.dataset.cat) { cat = t.dataset.cat; renderCats(); renderMeals(); return; }
@@ -148,7 +144,7 @@ document.addEventListener("click", e => {
   if (t.id === "done") { cart = {}; save(); view = "order"; closeDrawer(); toast("Thank you! Dee will be in touch"); return; }
   if (t.closest("#links")) toggleNav(false);
 });
-document.addEventListener("input", e => { const k = { "f-name":"name", "f-phone":"phone", "f-address":"address", "f-notes":"notes" }[e.target.id]; if (k) { form[k] = e.target.value; try { localStorage.setItem("dt-form", JSON.stringify(form)); } catch (x) {} } });
+document.addEventListener("input", e => { const k = { "f-name":"name", "f-phone":"phone", "f-address":"address", "f-notes":"notes" }[e.target.id]; if (k) { form[k] = e.target.value; try { localStorage.setItem("dtk-form", JSON.stringify(form)); } catch (x) {} } });
 $("#scrim").onclick = closeDrawer;
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") drawerOpen ? closeDrawer() : toggleNav(false);
@@ -161,16 +157,20 @@ document.addEventListener("keydown", e => {
 function toggleNav(o) { $("#links").classList.toggle("open", o); $("#burger").setAttribute("aria-expanded", o); }
 $("#burger").onclick = () => toggleNav(!$("#links").classList.contains("open"));
 
-/* ---------- hover glow that follows the cursor on glass panels ---------- */
 document.addEventListener("pointermove", e => {
   if (e.pointerType !== "mouse") return;
   const g = e.target.closest(".glass"); if (!g) return;
   const r = g.getBoundingClientRect(); g.style.setProperty("--mx", e.clientX - r.left + "px"); g.style.setProperty("--my", e.clientY - r.top + "px");
 });
 
-/* ---------- scroll: reveal, progress bar, nav hide/show, parallax ---------- */
 const io = "IntersectionObserver" in window && !reduced
-  ? new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add("in"); io.unobserve(x.target); } }), { threshold: .12, rootMargin: "0px 0px -6% 0px" }) : null;
+  ? new IntersectionObserver(es => es.forEach(x => {
+      if (!x.isIntersecting) return;
+      io.unobserve(x.target);
+      document.documentElement.classList.contains("loading") ? waiting.push(x.target) : x.target.classList.add("in");
+    }), { threshold: .12, rootMargin: "0px 0px -6% 0px" }) : null;
+const waiting = [];
+addEventListener("dtk:ready", () => waiting.splice(0).forEach(el => el.classList.add("in")));
 $$("[data-reveal]").forEach(el => io ? io.observe(el) : el.classList.add("in"));
 
 const nav = $("#nav"), prog = $("#progress"), heroBg = $("#heroBg"), blobs = $$("[data-speed]");

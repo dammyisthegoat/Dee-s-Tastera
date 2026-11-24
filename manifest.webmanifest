@@ -1,17 +1,17 @@
 {
   "id": "./",
-  "name": "Dee's Tastera",
-  "short_name": "Tastera",
-  "description": "Home-style Nigerian meals cooked to order by Dee. Order on WhatsApp.",
+  "name": "D’Tastera Kitchen",
+  "short_name": "D’Tastera",
+  "description": "Meals cooked to order by Dee. Made to satisfy… Order on WhatsApp.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#231713",
-  "theme_color": "#231713",
+  "background_color": "#f6efe5",
+  "theme_color": "#f6efe5",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
